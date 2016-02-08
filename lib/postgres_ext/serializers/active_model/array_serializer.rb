@@ -95,7 +95,7 @@ module PostgresExt::Serializers::ActiveModel
           elsif klass.respond_to? "#{name}__sql"
             relation_query = relation_query.select Arel::Nodes::As.new Arel.sql(klass.send("#{name}__sql")), Arel.sql(name.to_s)
           elsif name =~ /_at$/
-            relation_query = relation_query.select(Arel.sql("#{name}::timestamptz"))
+            relation_query = relation_query.select(Arel.sql("\"#{relation_query_arel.name}\".\"#{name}\"::timestamptz"))
           else
             relation_query = relation_query.select(relation_query_arel[name])
           end
