@@ -217,6 +217,7 @@ module PostgresExt::Serializers::ActiveModel
       @_visitor ||= _connection.visitor
       if @_visitor.is_a? Arel::Visitors::Reduce
         collector = Arel::Collectors::SQLString.new
+        binding.pry
         collector = @_visitor.accept.call arel, collector
         res = collector.value
         unless bind_values.nil?
