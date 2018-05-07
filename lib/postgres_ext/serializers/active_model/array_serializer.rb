@@ -214,10 +214,10 @@ module PostgresExt::Serializers::ActiveModel
     end
 
     def _to_sql(arel, bind_values = nil)
-      accept = _connection.visitor.method(:accept)
-      if accept.arity == 2
+      @_visitor ||= _connection.visitor
+      if @_visitor.is_a? Arel::Visitors::Reduce
         collector = Arel::Collectors::SQLString.new
-        collector = accept.call arel, collector
+        collector = @_visitor.accept.call arel, collector
         res = collector.value
         unless bind_values.nil?
           bind_values.each_with_index do |bv, i|
@@ -227,7 +227,7 @@ module PostgresExt::Serializers::ActiveModel
         end
         res
       else
-        accept.call arel
+        @_visitor.accept.call arel
       end
     end
 
@@ -246,7 +246,7 @@ module PostgresExt::Serializers::ActiveModel
           .map {|t| t.project(Arel.star) }
           .inject {|t1, t2| Arel::Nodes::Union.new(t1, t2) }
         json_table = Arel::Nodes::As.new json_table, Arel.sql("tbl")
-        json_table = Arel::Table.new(:t).from(json_table)
+        json_table = Arel::Table.new(:t).from.from(json_table)
 
         json_select_manager = if singular_key.to_s == key.to_s
           # Single resource is embedded as object instead of array.
