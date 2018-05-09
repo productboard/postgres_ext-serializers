@@ -216,9 +216,8 @@ module PostgresExt::Serializers::ActiveModel
     def _to_sql(arel, bind_values = nil)
       @_visitor ||= _connection.visitor
       if @_visitor.is_a? Arel::Visitors::Reduce
-        collector = Arel::Collectors::SQLString.new
-        binding.pry
-        collector = @_visitor.accept.call arel, collector
+        collector = Arel::Collectors::SubstituteBinds.new(_connection, Arel::Collectors::SQLString.new)
+        collector = @_visitor.accept arel, collector
         res = collector.value
         unless bind_values.nil?
           bind_values.each_with_index do |bv, i|
@@ -228,7 +227,7 @@ module PostgresExt::Serializers::ActiveModel
         end
         res
       else
-        @_visitor.accept.call arel
+        @_visitor.accept arel
       end
     end
 
